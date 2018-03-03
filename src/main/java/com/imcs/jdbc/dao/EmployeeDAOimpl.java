@@ -1,29 +1,24 @@
 package com.imcs.jdbc.dao;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.imcs.core.entity.Employee;
-import com.imcs.jdbc.interfaces.EmployeeDAO;
-import com.imcs.jdbc.util.ReadDBPropertiesFile;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
+import com.imcs.core.entity.Employee;
+import com.imcs.jdbc.context.MyApplicationContext;
+import com.imcs.jdbc.interfaces.EmployeeDAO;
+
+@Repository
 public class EmployeeDAOimpl implements EmployeeDAO {
 	
-	Connection connection;
-    {
-        try {
-            connection = createConnection();
-        } catch (ClassNotFoundException e) {
-        	System.out.println(e.getMessage());
-        } catch (SQLException e) {
-        	System.out.println(e.getMessage());
-        }
-    }
+	@Autowired
+	private Connection connection;
 
 	public boolean addEmployee(Employee employee) throws SQLException {
 		boolean isAdded = false;
@@ -80,7 +75,7 @@ public class EmployeeDAOimpl implements EmployeeDAO {
 			statement.setInt(1, id);
 			resultSet = statement.executeQuery();
 			if (resultSet.next()) {
-				employee = new Employee();
+				employee = MyApplicationContext.getInstance().getBean(Employee.class);
 			    employee.setId(resultSet.getInt(1));
 			    employee.setName(resultSet.getString(2));
 			    employee.setAge(resultSet.getInt(3));
@@ -98,6 +93,7 @@ public class EmployeeDAOimpl implements EmployeeDAO {
 	@Override
 	public List<Employee> getAllEmployeeInfo(int orderby) throws SQLException {
 		List<Employee> list = null;
+		Employee employee = null;
 		StringBuilder sb = new StringBuilder("select * from imcs.employee");
 		if(orderby==1)
 			sb.append(" order by salary");
@@ -110,7 +106,7 @@ public class EmployeeDAOimpl implements EmployeeDAO {
 			{
 			list = new ArrayList<Employee>();
 			while (resultSet.next()) {
-				Employee employee = new Employee();
+				employee = MyApplicationContext.getInstance().getBean(Employee.class);
 			    employee.setId(resultSet.getInt("empid"));
 			    employee.setName(resultSet.getString("name"));
 			    employee.setAge(resultSet.getInt("age"));
@@ -118,6 +114,7 @@ public class EmployeeDAOimpl implements EmployeeDAO {
 			    list.add(employee);
 			}
 		} catch (Exception e) {
+			e.printStackTrace();
 			System.out.println(e.getMessage());
 		}
         return list;
@@ -141,25 +138,6 @@ public class EmployeeDAOimpl implements EmployeeDAO {
 		}
         return salary;
 	}
-	
-	private Connection createConnection() throws ClassNotFoundException, SQLException {
-		Connection con = null;
-		String driverClass = null;
-		String url = null;
-		String username = null;
-		String pwd = null;
-		try{
-			driverClass = ReadDBPropertiesFile.getProperty("driver");
-			url = ReadDBPropertiesFile.getProperty("url");
-			username = ReadDBPropertiesFile.getProperty("username");
-			pwd = ReadDBPropertiesFile.getProperty("pwd");
-			Class.forName(driverClass);
-			con = DriverManager.getConnection(url,username,pwd);
-		}catch(Exception e){
-			System.out.println(e.getMessage());
-		}  
-		return con;
-    }
 	
 	public void finalize() {
 		try {

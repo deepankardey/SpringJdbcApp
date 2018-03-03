@@ -1,25 +1,36 @@
 package com.imcs.jdbc.main;
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
 
 import com.imcs.core.entity.Employee;
 import com.imcs.core.exceptions.EmployeeNotFoundException;
 import com.imcs.core.exceptions.InvalidSalaryException;
-import com.imcs.jdbc.services.EmployeeDBOperationsImpl;
+import com.imcs.jdbc.context.MyApplicationContext;
+import com.imcs.jdbc.services.EmployeeServiceImpl;
 
+@Component
 public class EmployeeDBOperationsApp {
-	EmployeeDBOperationsImpl impl = null;
-	DateFormat sdf = new SimpleDateFormat("MM-dd-yyyy");
+	@Autowired
+	EmployeeServiceImpl impl;
+	@Autowired
+	DateFormat sdf;
+	
+	static ApplicationContext context =  null;
 	
 	public static void main(String args[])throws Exception {
-		new EmployeeDBOperationsApp().execute();
+		context =  MyApplicationContext.getInstance();
+		System.out.println(Arrays.asList(context.getBeanDefinitionNames()));
+		context.getBean(EmployeeDBOperationsApp.class).execute();
 	}
 	
 	public void execute() {
 		try(Scanner sc = new Scanner(System.in);) {
-			impl = new EmployeeDBOperationsImpl();
 			while (true) {
 				System.out.println("=========================================================================");
 				System.out.println("Select one option from the menu");
@@ -88,7 +99,11 @@ public class EmployeeDBOperationsApp {
 		int salary = sc.nextInt();
 		System.out.println("Enter Employee Age : ");
 		int age = sc.nextInt();
-		Employee emp = new Employee(id,name,salary,age);
+		Employee emp = context.getBean(Employee.class);
+		emp.setId(id);
+		emp.setName(name);
+		emp.setSalary(salary);
+		emp.setAge(age);
 		try {
 			if(impl.addEmployee(emp));
 				System.out.println("Employee with Employee id : "+id+" added to the list");
@@ -117,7 +132,11 @@ public class EmployeeDBOperationsApp {
 		int salary = sc.nextInt();
 		System.out.println("Enter Employee Age : ");
 		int age = sc.nextInt();
-		Employee emp = new Employee(id,name,salary,age);
+		Employee emp = context.getBean(Employee.class);
+		emp.setId(id);
+		emp.setName(name);
+		emp.setSalary(salary);
+		emp.setAge(age);
 		try {
 			if(impl.updateEmployeeInfo(emp))
 				System.out.println("Employee with id "+id+" got updated");
